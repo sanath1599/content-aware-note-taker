@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import { v4 as uuidv4 } from "uuid";
 import { Mic } from '@mui/icons-material';
+import axios from 'axios';
 
 function App() {
   const [uuid, setUuid] = useState("");
@@ -20,6 +21,7 @@ function App() {
   const [message, setMessage] = useState("");
   const [textToSpeak, setTextToSpeak] = useState("");
   const [recognition, setRecognition] = useState(null);
+  const API_URL = process.env.REACT_APP_API_URL;
 
   const generateUuid = () => {
     const newUuid = uuidv4();
@@ -60,20 +62,17 @@ function App() {
         const formData = new FormData();
         formData.append("file", selectedFile);
         formData.append("uuid", uuid);
-
-        const response = await fetch("https://api.example.com/upload", {
-          method: "POST",
-          body: formData,
+        
+        const response = await axios.post(`${API_URL}/api/notes/createContext`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
         });
-
-        if (response.ok) {
-          setMessage("File uploaded successfully.");
-        } else {
-          setMessage("Failed to upload file.");
-        }
+        setMessage(response.data.message)
       } catch (error) {
         console.error("Error uploading file:", error);
         setMessage("Error uploading file.");
+        if(error?.response?.data?.message) setMessage(error.response.data.message)
       }
     } else {
       setMessage("Invalid file type. Please select a valid document.");
