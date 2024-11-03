@@ -23,7 +23,7 @@ const App = () => {
       </a>
       <br />
       <button className="learn-more" onClick={() => handleRedirect('http://wehelpyou.study')}>
-        Learn More
+        Try for free now!
       </button>
     </div>
   );
