@@ -86,33 +86,47 @@ async function extractTextFromPDF(filePath) {
 }
 
 async function summarizeTextWithGPT(text) {
-    try {
-        const response = await axios.post(
-            "https://api.openai.com/v1/chat/completions",
-            {
-                model: "gpt-3.5-turbo", // You can also use "gpt-4" if available
-                messages: [
-                    { role: "system", content: "You are an automated note taker for student with hearing challenges, your task is to generate very detailed notes based on the user content. Feel free to add additional information including examples for each sub section" },
-                    { role: "user", content: text }
-                ],
-                // max_tokens: 500, // Adjust based on desired summary length
-                temperature: 0.5
-            },
-            {
-                headers: {
-                    "Authorization": `Bearer ${OPENAI_API_KEY}`,
-                    "Content-Type": "application/json"
-                }
-            }
-        );
+    const CHUNK_SIZE = 10000; // Maximum character limit per chunk
+    let accumulatedSummary = ""; // Store accumulated summary here
 
-        // Extract the summary from the response
-        return response.data.choices[0].message.content;
+    try {
+        // Loop over the text in chunks of 10,000 characters
+        for (let i = 0; i < text.length; i += CHUNK_SIZE) {
+            const textChunk = text.slice(i, i + CHUNK_SIZE);
+
+            const response = await axios.post(
+                "https://api.openai.com/v1/chat/completions",
+                {
+                    model: "gpt-3.5-turbo",
+                    messages: [
+                        {
+                            role: "system",
+                            content: "You are an automated note taker for a student with hearing challenges. Generate detailed, structured notes from the user content. Add explanations and examples where appropriate."
+                        },
+                        { role: "user", content: textChunk }
+                    ],
+                    temperature: 0.5
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${OPENAI_API_KEY}`,
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+
+            // Append the summary of the current chunk to the accumulated summary
+            accumulatedSummary += response.data.choices[0].message.content + "\n";
+        }
+
+        // Return the full accumulated summary after all chunks are processed
+        return accumulatedSummary.trim();
     } catch (error) {
         console.error("Error summarizing text with OpenAI API:", error);
         return "Error generating summary.";
     }
 }
+
 
 //don't show the log when it is test
 if(process.env.NODE_ENV !== "test") {
