@@ -1,6 +1,4 @@
-.App {
-  text-align: center;
-}
+
 
 .App-logo {
   height: 40vmin;
@@ -13,6 +11,22 @@
   }
 }
 
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+.App {
+  text-align: center;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
@@ -21,11 +35,37 @@
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: whitepearl;
 }
 
 .App-link {
   color: #61dafb;
+}
+
+.react-chatbot-kit-chat-bot-message {
+  background-color: #008b8b;
+}
+
+.react-chatbot-kit-chat-bot-message-arrow {
+  border-right: 8px solid #008b8b;
+}
+
+/* chat botton */
+
+.react-chatbot-kit-chat-btn-send {
+  background-color: #008b8b;
+}
+
+.bottone {
+  background-color: gray;
+  /* padding: 5px 12px; */
+  border-radius: 4px;
+  transition-duration: 0.4s;
+}
+
+.button:hover {
+  background-color: #4caf50; /* Green */
+  color: white;
 }
 
 @keyframes App-logo-spin {

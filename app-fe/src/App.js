@@ -7,10 +7,18 @@ import {
   Grid,
   Container,
   Divider,
+  Fab,
+  IconButton,
+  Avatar,
 } from "@mui/material";
 import { v4 as uuidv4 } from "uuid";
-import { Mic, PictureAsPdf } from '@mui/icons-material';
-import axios from 'axios';
+import { Mic, PictureAsPdf, Chat, Close } from "@mui/icons-material";
+import axios from "axios";
+import Chatbot from "react-chatbot-kit";
+import config from "./chatbot/config";
+import MessageParser from "./chatbot/MessageParser.js";
+import ActionProvider from "./chatbot/ActionProvider.js";
+import "react-chatbot-kit/build/main.css"; // Import default chatbot kit styling
 
 function App() {
   const [uuid, setUuid] = useState("");
@@ -20,6 +28,7 @@ function App() {
   const [message, setMessage] = useState("");
   const [textToSpeak, setTextToSpeak] = useState("");
   const [recognition, setRecognition] = useState(null);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false); // State to control chatbot visibility
   const API_URL = process.env.REACT_APP_API_URL;
 
   const generateUuid = () => {
@@ -54,7 +63,7 @@ function App() {
         const formData = new FormData();
         formData.append("file", selectedFile);
         formData.append("uuid", uuid);
-        
+
         const response = await axios.post(`${API_URL}/api/notes/createContext`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
@@ -71,8 +80,8 @@ function App() {
     }
   };
 
-  const accumulatedTranscript = useRef(""); // Accumulated transcript across results
-  const delayTimer = useRef(null); // Timer reference for delay
+  const accumulatedTranscript = useRef("");
+  const delayTimer = useRef(null);
 
   const handleSpeak = () => {
     if (!("webkitSpeechRecognition" in window)) {
@@ -90,20 +99,15 @@ function App() {
         transcript += event.results[i][0].transcript;
       }
 
-      // Update local state to show live text
       setTextToSpeak(transcript);
-
-      // Append the new transcript to the accumulated transcript
       accumulatedTranscript.current = transcript;
 
-      // Clear any existing delay timer
       if (delayTimer.current) clearTimeout(delayTimer.current);
 
-      // Set a new delay timer to send data after 3 seconds of inactivity
       delayTimer.current = setTimeout(() => {
         sendToAPI(accumulatedTranscript.current);
-        accumulatedTranscript.current = ""; // Reset after sending
-      }, 3000); // Adjust the delay (in milliseconds) as needed
+        accumulatedTranscript.current = "";
+      }, 3000);
     };
 
     recognitionInstance.onerror = (event) => {
@@ -112,7 +116,7 @@ function App() {
 
     recognitionInstance.onend = () => {
       console.log("Speech recognition service disconnected");
-      setRecognition(null); // Clear recognition instance
+      setRecognition(null);
     };
     recognitionInstance.start();
     setRecognition(recognitionInstance);
@@ -136,17 +140,14 @@ function App() {
     }
   };
 
-  // Function to generate the PDF from textToSpeak content
   const generatePdf = async () => {
     try {
       const response = await axios.post(`${API_URL}/api/notes/generatePDF`, {
         uuid: uuid,
-        // markdownContent: textToSpeak
       }, {
-        responseType: 'blob' // Important for handling PDF files
+        responseType: 'blob'
       });
 
-      // Create a URL for the PDF file
       const pdfUrl = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = pdfUrl;
@@ -159,132 +160,218 @@ function App() {
     }
   };
 
+  const toggleChatbot = () => {
+    setIsChatbotOpen(!isChatbotOpen);
+  };
+
   return (
-    <Container maxWidth="lg" style={{ marginTop: "20px" }}>
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={6}>
+    <div className="App">
+      <header className="App-header">
+        {isChatbotOpen && (
           <Box
-            p={3}
-            border={1}
-            borderColor="grey.300"
-            borderRadius="8px"
-            bgcolor="grey.50"
+            sx={{
+              position: "fixed",
+              bottom: "80px",
+              right: "20px",
+              width: "300px",
+              height: "580px",
+              borderRadius: "10px",
+              boxShadow: 3,
+              backgroundColor: "white",
+              zIndex: 10,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
           >
-            <Typography variant="h5" gutterBottom>
-              Configuration Panel
-            </Typography>
-            <Divider style={{ marginBottom: "16px" }} />
-
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={generateUuid}
-              fullWidth
-              aria-label="Generate new UUID"
-              style={{ marginBottom: "16px" }}
+            {/* Chatbot Header with Close Icon */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "8px",
+                backgroundColor: "#3f51b5",
+                color: "white",
+                borderTopLeftRadius: "10px",
+                borderTopRightRadius: "10px",
+              }}
             >
-              Generate New UUID
-            </Button>
-
-            <TextField
-              label="Enter UUID (or generated UUID)"
-              variant="outlined"
-              fullWidth
-              value={uuid}
-              onChange={handleUuidChange}
-              aria-describedby="uuid-input-description"
-              style={{ marginBottom: "16px" }}
-            />
-            <Typography id="uuid-input-description" variant="body2" color="textSecondary">
-              Please enter at least 10 characters for the UUID.
-            </Typography>
-
-            <Button
-              variant="contained"
-              component="label"
-              fullWidth
-              color="secondary"
-              style={{ marginBottom: "16px" }}
-              aria-label={uuidCheck}
-            >
-              {uuidCheck}
-              <input
-                type="file"
-                hidden
-                disabled={uploadEnable}
-                accept=".txt, .pdf, .ppt, .pptx, .doc, .docx"
-                onChange={handleFileChange}
-                aria-label="Upload file"
-              />
-            </Button>
-
-            {message && (
-              <Typography color="textSecondary" variant="body1" role="alert">
-                {message}
+              <Typography variant="h6" sx={{ fontSize: "1rem" }}>
+                Chatbot
               </Typography>
-            )}
+              <IconButton size="small" color="inherit" onClick={toggleChatbot}>
+                <Close />
+              </IconButton>
+            </Box>
+
+            {/* Chatbot Body with Message Styling */}
+            <Box sx={{ flex: 1, overflowY: "auto", padding: "8px" }}>
+              <Chatbot
+                config={config}
+                actionProvider={ActionProvider}
+                messageParser={MessageParser}
+                messageStyle={{
+                  botMessageBox: {
+                    display: "flex",
+                    alignItems: "flex-start",
+                    backgroundColor: "#e0e0e0",
+                    borderRadius: "15px 15px 15px 0px",
+                    padding: "10px",
+                    marginBottom: "10px",
+                    maxWidth: "75%",
+                  },
+                  userMessageBox: {
+                    display: "flex",
+                    alignItems: "flex-end",
+                    backgroundColor: "#3f51b5",
+                    color: "#fff",
+                    borderRadius: "15px 15px 0px 15px",
+                    padding: "10px",
+                    marginBottom: "10px",
+                    marginLeft: "auto",
+                    maxWidth: "75%",
+                  },
+                  botAvatarStyle: {
+                    marginRight: "8px",
+                    width: "24px",
+                    height: "24px",
+                  },
+                  userAvatarStyle: {
+                    marginLeft: "8px",
+                    width: "24px",
+                    height: "24px",
+                  },
+                }}
+              />
+            </Box>
           </Box>
+        )}
+      </header>
+
+      <Container maxWidth="lg" style={{ marginTop: "20px" }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Box p={3} border={1} borderColor="grey.300" borderRadius="8px" bgcolor="grey.50">
+              <Typography variant="h5" gutterBottom>
+                Configuration Panel
+              </Typography>
+              <Divider style={{ marginBottom: "16px" }} />
+
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={generateUuid}
+                fullWidth
+                aria-label="Generate new UUID"
+                style={{ marginBottom: "16px" }}
+              >
+                Generate New UUID
+              </Button>
+
+              <TextField
+                label="Enter UUID (or generated UUID)"
+                variant="outlined"
+                fullWidth
+                value={uuid}
+                onChange={handleUuidChange}
+                aria-describedby="uuid-input-description"
+                style={{ marginBottom: "16px" }}
+              />
+              <Typography id="uuid-input-description" variant="body2" color="textSecondary">
+                Please enter at least 10 characters for the UUID.
+              </Typography>
+
+              <Button
+                variant="contained"
+                component="label"
+                fullWidth
+                color="secondary"
+                style={{ marginBottom: "16px" }}
+                aria-label={uuidCheck}
+              >
+                {uuidCheck}
+                <input
+                  type="file"
+                  hidden
+                  disabled={uploadEnable}
+                  accept=".txt, .pdf, .ppt, .pptx, .doc, .docx"
+                  onChange={handleFileChange}
+                  aria-label="Upload file"
+                />
+              </Button>
+
+              {message && (
+                <Typography color="textSecondary" variant="body1" role="alert">
+                  {message}
+                </Typography>
+              )}
+            </Box>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Box p={3} border={1} borderColor="grey.300" borderRadius="8px" bgcolor="grey.100">
+              <Typography variant="h5" gutterBottom>
+                Content Aware Note Taker
+              </Typography>
+
+              <TextField
+                label="Text from Speech"
+                variant="outlined"
+                fullWidth
+                multiline
+                rows={4}
+                value={textToSpeak}
+                onChange={(e) => setTextToSpeak(e.target.value)}
+                style={{ marginBottom: "16px" }}
+                aria-label="Transcribed text"
+              />
+
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSpeak}
+                startIcon={<Mic />}
+                style={{ marginRight: "8px" }}
+                aria-label="Start speech recognition"
+              >
+                Speak
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={handleStop}
+                aria-label="Stop speech recognition"
+              >
+                Stop
+              </Button>
+
+              <Button
+                variant="contained"
+                color="success"
+                onClick={generatePdf}
+                startIcon={<PictureAsPdf />}
+                disabled={recognition !== null}
+                style={{ float: "right", marginTop: "16px" }}
+                aria-label="Generate PDF"
+              >
+                Generate PDF
+              </Button>
+            </Box>
+          </Grid>
         </Grid>
+      </Container>
 
-        <Grid item xs={12} md={6}>
-          <Box
-            p={3}
-            border={1}
-            borderColor="grey.300"
-            borderRadius="8px"
-            bgcolor="grey.100"
-          >
-            <Typography variant="h5" gutterBottom>
-              Content Aware Note Taker
-            </Typography>
-
-            <TextField
-              label="Text from Speech"
-              variant="outlined"
-              fullWidth
-              multiline
-              rows={4}
-              value={textToSpeak}
-              onChange={(e) => setTextToSpeak(e.target.value)}
-              style={{ marginBottom: "16px" }}
-              aria-label="Transcribed text"
-            />
-
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSpeak}
-              startIcon={<Mic />}
-              style={{ marginRight: "8px" }}
-              aria-label="Start speech recognition"
-            >
-              Speak
-            </Button>
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={handleStop}
-              aria-label="Stop speech recognition"
-            >
-              Stop
-            </Button>
-
-            {/* Generate PDF button */}
-            <Button
-              variant="contained"
-              color="success"
-              onClick={generatePdf}
-              startIcon={<PictureAsPdf />}
-              disabled={recognition !== null} // Enable only when recognition is not active
-              style={{ float: "right", marginTop: "16px" }}
-              aria-label="Generate PDF"
-            >
-              Generate PDF
-            </Button>
-          </Box>
-        </Grid>
-      </Grid>
-    </Container>
+      {/* Floating Action Button for Chatbot */}
+      <Fab
+        color="primary"
+        sx={{ position: "fixed", bottom: 16, right: 16 }}
+        onClick={toggleChatbot}
+        aria-label="Open chatbot"
+      >
+        <Chat />
+      </Fab>
+    </div>
   );
 }
 
