@@ -18,13 +18,15 @@ const App = () => {
     <div className="container">
       <img src={`/logo.png`} alt="Logo" className="logo" />
       <h1 className="title">CANT.STUDY?</h1>
-      <a href="#!" onClick={() => handleRedirect('http://wehelpyou.study')} className="subtitle">
-        WEHELPYOU.study
-      </a>
-      <br />
       <button className="learn-more" onClick={() => handleRedirect('http://wehelpyou.study')}>
         Try for free now!
       </button>
+      <br/>
+      <br/>
+      <a href="#!" onClick={() => handleRedirect('http://wehelpyou.study')} className="subtitle">
+        WeHelpYou.study
+      </a>
+      
     </div>
   );
 };
