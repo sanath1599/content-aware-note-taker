@@ -28,7 +28,7 @@ function App() {
   const [message, setMessage] = useState("");
   const [textToSpeak, setTextToSpeak] = useState("");
   const [recognition, setRecognition] = useState(null);
-  const [isChatbotOpen, setIsChatbotOpen] = useState(false); // State to control chatbot visibility
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false); 
   const API_URL = process.env.REACT_APP_API_URL;
   const stateRef = React.createRef();
 

@@ -12,9 +12,7 @@ const Context = require("./models/ContextModel");
 const fs = require("fs");
 const pdf = require("pdf-parse");
 const axios = require("axios");
-const OPENAI_API_KEY = "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"
-// DB connection
-// Directory to store files
+const OPENAI_API_KEY = process.env.OPEN_AI_API_KEY;
 const storageDir = path.join(__dirname, "./storage");
 const tmpDir = path.join(__dirname, "./tmp");
 const uploadDir = path.join(__dirname, "./uploads");
