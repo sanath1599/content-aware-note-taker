@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Button,
   TextField,
@@ -9,16 +9,16 @@ import {
   Divider,
   Fab,
   IconButton,
-  Avatar,
 } from "@mui/material";
 import { v4 as uuidv4 } from "uuid";
 import { Mic, PictureAsPdf, Chat, Close } from "@mui/icons-material";
 import axios from "axios";
 import Chatbot from "react-chatbot-kit";
 import config from "./chatbot/config";
-import MessageParser from "./chatbot/MessageParser.js";
-import ActionProvider from "./chatbot/ActionProvider.js";
-import "react-chatbot-kit/build/main.css"; // Import default chatbot kit styling
+import MessageParser from "./chatbot/MessageParser";
+import ActionProvider from "./chatbot/ActionProvider";
+import "react-chatbot-kit/build/main.css"
+
 
 function App() {
   const [uuid, setUuid] = useState("");
@@ -30,6 +30,18 @@ function App() {
   const [recognition, setRecognition] = useState(null);
   const [isChatbotOpen, setIsChatbotOpen] = useState(false); // State to control chatbot visibility
   const API_URL = process.env.REACT_APP_API_URL;
+  const stateRef = React.createRef();
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const uuidFromUrl = urlParams.get("uuid");
+
+    if (uuidFromUrl) {
+      setUuid(uuidFromUrl);
+      setUploadEnable(false);
+      setUuidCheck("Upload Context");
+    }
+  }, []);
 
   const generateUuid = () => {
     const newUuid = uuidv4();
@@ -37,6 +49,8 @@ function App() {
     setMessage(`Generated UUID: ${newUuid}`);
     setUploadEnable(false);
     setUuidCheck("Upload Context");
+    const newUrl = `${window.location.pathname}?uuid=${newUuid}`;
+    window.history.replaceState(null, "", newUrl);
   };
 
   const handleUuidChange = (event) => {
@@ -49,6 +63,8 @@ function App() {
       setUuidCheck("Need a longer UUID (At least 10 Char)");
     }
     setMessage("");
+    const newUrl = `${window.location.pathname}?uuid=${uuid}`;
+    window.history.replaceState(null, "", newUrl);
   };
 
   const handleFileChange = async (event) => {
@@ -211,6 +227,7 @@ function App() {
                 config={config}
                 actionProvider={ActionProvider}
                 messageParser={MessageParser}
+                stateRef={stateRef}
                 messageStyle={{
                   botMessageBox: {
                     display: "flex",
