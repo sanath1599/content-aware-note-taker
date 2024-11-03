@@ -8,6 +8,7 @@ mongoose.set("useFindAndModify", false);
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
+const markdownpdf = require("markdown-pdf");
 const storageDir = path.join(__dirname, "../storage");
 // Configure Multer for file uploads
 const storage = multer.diskStorage({
@@ -104,3 +105,99 @@ exports.recordSpeech = [
 		}
 	}
 ]
+
+exports.generatePDF = [
+  // auth,
+  async function (req, res) {
+    const { uuid } = req.body;
+
+    if (!uuid) {
+      return res.status(400).send("UUID content is required.");
+    }
+
+    let markdownContent = await Context.findOne({ uuid }).select("condensedInformation").exec();
+    console.log(markdownContent);
+
+    if (!markdownContent || !markdownContent.condensedInformation) {
+      return res.status(404).send("No content found for the given UUID.");
+    }
+
+    // Define a temporary directory path for PDF and markdown files
+    const tmpDir = path.join(__dirname, "../tmp");
+    const pdfFilePath = path.join(tmpDir, `${uuid}.pdf`);
+    const markdownFilePath = path.join(tmpDir, "temp.md");
+
+    try {
+      // Write the markdown content to a temporary markdown file
+      fs.writeFileSync(markdownFilePath, markdownContent.condensedInformation);
+
+      // Convert Markdown to PDF and save to the temp path
+      markdownpdf()
+        .from(markdownFilePath)
+        .to(pdfFilePath, () => {
+          // Send the generated PDF file as a response
+          res.setHeader("Content-Type", "application/pdf");
+          res.setHeader("Content-Disposition", `attachment; filename="generated.pdf"`);
+          res.sendFile(pdfFilePath, (err) => {
+            if (err) {
+              console.error("Error sending PDF file:", err);
+            }
+
+            // Cleanup: Delete the temporary files
+            fs.unlinkSync(pdfFilePath);
+            fs.unlinkSync(markdownFilePath);
+          });
+        });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      res.status(500).send("An error occurred while generating the PDF.");
+    }
+  },
+];exports.generatePDF = [
+	// auth,
+	async function (req, res) {
+	  const { uuid } = req.body;
+  
+	  if (!uuid) {
+		return res.status(400).send("UUID content is required.");
+	  }
+  
+	  let markdownContent = await Context.findOne({ uuid }).select("condensedInformation").exec();
+	  console.log(markdownContent);
+  
+	  if (!markdownContent || !markdownContent.condensedInformation) {
+		return res.status(404).send("No content found for the given UUID.");
+	  }
+  
+	  // Define a temporary directory path for PDF and markdown files
+	  const tmpDir = path.join(__dirname, "../tmp");
+	  const pdfFilePath = path.join(tmpDir, `${uuid}.pdf`);
+	  const markdownFilePath = path.join(tmpDir, "temp.md");
+  
+	  try {
+		// Write the markdown content to a temporary markdown file
+		fs.writeFileSync(markdownFilePath, markdownContent.condensedInformation);
+  
+		// Convert Markdown to PDF and save to the temp path
+		markdownpdf()
+		  .from(markdownFilePath)
+		  .to(pdfFilePath, () => {
+			// Send the generated PDF file as a response
+			res.setHeader("Content-Type", "application/pdf");
+			res.setHeader("Content-Disposition", `attachment; filename="generated.pdf"`);
+			res.sendFile(pdfFilePath, (err) => {
+			  if (err) {
+				console.error("Error sending PDF file:", err);
+			  }
+  
+			  // Cleanup: Delete the temporary files
+			  fs.unlinkSync(pdfFilePath);
+			  fs.unlinkSync(markdownFilePath);
+			});
+		  });
+	  } catch (error) {
+		console.error("Error generating PDF:", error);
+		res.status(500).send("An error occurred while generating the PDF.");
+	  }
+	},
+  ];

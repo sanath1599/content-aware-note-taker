@@ -1,4 +1,3 @@
-// App.js
 import React, { useState, useRef } from "react";
 import {
   Button,
@@ -10,7 +9,7 @@ import {
   Divider,
 } from "@mui/material";
 import { v4 as uuidv4 } from "uuid";
-import { Mic } from '@mui/icons-material';
+import { Mic, PictureAsPdf } from '@mui/icons-material';
 import axios from 'axios';
 
 function App() {
@@ -38,21 +37,14 @@ function App() {
       setUuidCheck("Upload Context");
     } else {
       setUploadEnable(true);
-      setUuidCheck("Need a longer UUID ( At least 10 Char )");
+      setUuidCheck("Need a longer UUID (At least 10 Char)");
     }
     setMessage("");
   };
 
   const handleFileChange = async (event) => {
     const selectedFile = event.target.files[0];
-    const allowedTypes = [
-      // "text/plain",
-      "application/pdf",
-      // "application/vnd.ms-powerpoint",
-      // "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-      // "application/msword",
-      // "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ];
+    const allowedTypes = ["application/pdf"];
 
     if (selectedFile && allowedTypes.includes(selectedFile.type)) {
       setFile(selectedFile);
@@ -68,17 +60,16 @@ function App() {
             'Content-Type': 'multipart/form-data'
           }
         });
-        setMessage(response.data.message)
+        setMessage(response.data.message);
       } catch (error) {
         console.error("Error uploading file:", error);
         setMessage("Error uploading file.");
-        if(error?.response?.data?.message) setMessage(error.response.data.message)
+        if (error?.response?.data?.message) setMessage(error.response.data.message);
       }
     } else {
       setMessage("Invalid file type. Please select a valid document.");
     }
   };
-
 
   const accumulatedTranscript = useRef(""); // Accumulated transcript across results
   const delayTimer = useRef(null); // Timer reference for delay
@@ -122,20 +113,15 @@ function App() {
     recognitionInstance.onend = () => {
       console.log("Speech recognition service disconnected");
       setRecognition(null); // Clear recognition instance
-    }; 
+    };
     recognitionInstance.start();
     setRecognition(recognitionInstance);
   };
+
   const handleStop = () => {
     if (recognition) {
       recognition.stop();
     }
-  };
-
-
-  const isCompleteSentence = (text) => {
-    // Simple check to see if text contains sentence-ending punctuation
-    return /[.!?]$/.test(text.trim());
   };
 
   const sendToAPI = async (speechText) => {
@@ -149,6 +135,30 @@ function App() {
       console.error("Error sending speech data:", error);
     }
   };
+
+  // Function to generate the PDF from textToSpeak content
+  const generatePdf = async () => {
+    try {
+      const response = await axios.post(`${API_URL}/api/notes/generatePDF`, {
+        uuid: uuid,
+        // markdownContent: textToSpeak
+      }, {
+        responseType: 'blob' // Important for handling PDF files
+      });
+
+      // Create a URL for the PDF file
+      const pdfUrl = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = pdfUrl;
+      link.setAttribute("download", "notes.pdf");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    }
+  };
+
   return (
     <Container maxWidth="lg" style={{ marginTop: "20px" }}>
       <Grid container spacing={2}>
@@ -257,6 +267,19 @@ function App() {
               aria-label="Stop speech recognition"
             >
               Stop
+            </Button>
+
+            {/* Generate PDF button */}
+            <Button
+              variant="contained"
+              color="success"
+              onClick={generatePdf}
+              startIcon={<PictureAsPdf />}
+              disabled={recognition !== null} // Enable only when recognition is not active
+              style={{ float: "right", marginTop: "16px" }}
+              aria-label="Generate PDF"
+            >
+              Generate PDF
             </Button>
           </Box>
         </Grid>
