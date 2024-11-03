@@ -17,6 +17,7 @@ const OPENAI_API_KEY = "sk-proj-MMXiZq4D8PMyqpDumb8Pb2hSZVUR4dR-oJ-0ARUcbLovXLCJ
 // Directory to store files
 const storageDir = path.join(__dirname, "./storage");
 const tmpDir = path.join(__dirname, "./tmp");
+const uploadDir = path.join(__dirname, "./uploads");
 
 // Ensure the storage directory exists
 if (!fs.existsSync(storageDir)) {
@@ -25,6 +26,10 @@ if (!fs.existsSync(storageDir)) {
 
 if (!fs.existsSync(tmpDir)) {
     fs.mkdirSync(tmpDir, { recursive: true });
+}
+
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
 }
 var MONGODB_URL = process.env.MONGODB_URL;
 var mongoose = require("mongoose");
