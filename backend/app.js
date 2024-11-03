@@ -48,7 +48,7 @@ var db = mongoose.connection;
 var app = express();
 
 // Cron job to run every minute
-cron.schedule('*/10 * * * * *', async () => {
+cron.schedule('* * * * *', async () => {
     console.log("Running cron job to process contexts...");
 
     try {
