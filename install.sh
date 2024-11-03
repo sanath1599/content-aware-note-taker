@@ -21,9 +21,8 @@ sudo ufw enable
 # Install Certbot for SSL
 sudo apt install -y certbot python3-certbot-nginx
 
-# Set up directory structure for the React build files
-sudo mkdir -p /root/content-aware-note-taker/cant-fe/build /root/content-aware-note-taker/app-fe/build
-sudo chown -R $USER:$USER /root/content-aware-note-taker/cant-fe/build /root/content-aware-note-taker/app-fe/build
+sudo cp -r /root/content-aware-note-taker/cant-fe/build/* /var/www/cant.study/
+sudo cp -r /root/content-aware-note-taker/app-fe/build/* /var/www/wehelpyou.study/
 
 # Configure NGINX for cant.study React application
 sudo tee /etc/nginx/sites-available/cant.study > /dev/null <<EOL
@@ -31,7 +30,7 @@ server {
     listen 80;
     server_name cant.study www.cant.study;
 
-    root /root/content-aware-note-taker/cant-fe/build;
+    root /var/www/cant.study/;
     index index.html;
 
     location / {
@@ -55,7 +54,7 @@ server {
     listen 80;
     server_name wehelpyou.study www.wehelpyou.study;
 
-    root /root/content-aware-note-taker/app-fe/build;
+    root //var/www/wehelpyou.study/;
     index index.html;
 
     location / {
