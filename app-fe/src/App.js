@@ -1,5 +1,5 @@
 // App.js
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Button,
   TextField,
@@ -46,12 +46,12 @@ function App() {
   const handleFileChange = async (event) => {
     const selectedFile = event.target.files[0];
     const allowedTypes = [
-      "text/plain",
+      // "text/plain",
       "application/pdf",
-      "application/vnd.ms-powerpoint",
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      // "application/vnd.ms-powerpoint",
+      // "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      // "application/msword",
+      // "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
 
     if (selectedFile && allowedTypes.includes(selectedFile.type)) {
@@ -79,6 +79,10 @@ function App() {
     }
   };
 
+
+  const accumulatedTranscript = useRef(""); // Accumulated transcript across results
+  const delayTimer = useRef(null); // Timer reference for delay
+
   const handleSpeak = () => {
     if (!("webkitSpeechRecognition" in window)) {
       alert("Your browser does not support speech recognition.");
@@ -90,11 +94,25 @@ function App() {
     recognitionInstance.interimResults = true;
 
     recognitionInstance.onresult = (event) => {
-      let transcript = '';
+      let transcript = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
         transcript += event.results[i][0].transcript;
       }
+
+      // Update local state to show live text
       setTextToSpeak(transcript);
+
+      // Append the new transcript to the accumulated transcript
+      accumulatedTranscript.current = transcript;
+
+      // Clear any existing delay timer
+      if (delayTimer.current) clearTimeout(delayTimer.current);
+
+      // Set a new delay timer to send data after 3 seconds of inactivity
+      delayTimer.current = setTimeout(() => {
+        sendToAPI(accumulatedTranscript.current);
+        accumulatedTranscript.current = ""; // Reset after sending
+      }, 3000); // Adjust the delay (in milliseconds) as needed
     };
 
     recognitionInstance.onerror = (event) => {
@@ -104,18 +122,33 @@ function App() {
     recognitionInstance.onend = () => {
       console.log("Speech recognition service disconnected");
       setRecognition(null); // Clear recognition instance
-    };
-
+    }; 
     recognitionInstance.start();
     setRecognition(recognitionInstance);
   };
-
   const handleStop = () => {
     if (recognition) {
       recognition.stop();
     }
   };
 
+
+  const isCompleteSentence = (text) => {
+    // Simple check to see if text contains sentence-ending punctuation
+    return /[.!?]$/.test(text.trim());
+  };
+
+  const sendToAPI = async (speechText) => {
+    try {
+      await axios.post(`${API_URL}/api/notes/recordSpeech`, {
+        uuid: uuid,
+        transcript: speechText
+      });
+      console.log("Speech data sent successfully:", speechText);
+    } catch (error) {
+      console.error("Error sending speech data:", error);
+    }
+  };
   return (
     <Container maxWidth="lg" style={{ marginTop: "20px" }}>
       <Grid container spacing={2}>

@@ -6,8 +6,9 @@ const auth = require("../middlewares/jwt");
 var mongoose = require("mongoose");
 mongoose.set("useFindAndModify", false);
 const multer = require("multer");
+const fs = require("fs");
 const path = require("path");
-
+const storageDir = path.join(__dirname, "../storage");
 // Configure Multer for file uploads
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -73,3 +74,33 @@ exports.createContext = [
         }
     }
 ];
+
+
+exports.recordSpeech = [
+	async function(req, res) {
+		try{
+			const { uuid, transcript } = req.body;
+
+    if (!uuid || !transcript) {
+        return res.status(400).json({ error: "uuid and speech are required." });
+    }
+
+    // Define the file path
+    const filePath = path.join(storageDir, `${uuid}.txt`);
+
+    // Append speech to file if it exists, otherwise create a new file
+    fs.appendFile(filePath, transcript + "\n", (err) => {
+        if (err) {
+            console.error("Error writing to file:", err);
+            return res.status(500).json({ error: "Could not write to file." });
+        }
+
+        return apiResponse.successResponse(res, "Speech recorded successfully!");
+    });
+		}
+		catch(err){
+			console.log(err)
+			return apiResponse.ErrorResponse(res, err);	
+		}
+	}
+]
