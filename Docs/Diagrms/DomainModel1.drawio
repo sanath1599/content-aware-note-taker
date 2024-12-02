@@ -1,0 +1,37 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" version="24.8.9">
+  <diagram id="GvydzLp2npG492zEkwmf" name="Page-1">
+    <mxGraphModel dx="2074" dy="1132" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" value="User&#xa;--------------------------------&#xa;Attributes:&#xa;- userId: String&#xa;- userName: String&#xa;- email: String&#xa;- privacySettings: Boolean&#xa;--------------------------------&#xa;Methods:&#xa;- uploadFile()&#xa;- configureSystem()&#xa;- accessNotes()&#xa;- setPrivacyOptions()" style="shape=rectangle;rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="50" width="240" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="3" value="Context Files&#xa;--------------------------------&#xa;Attributes:&#xa;- fileId: String&#xa;- fileName: String&#xa;- fileType: String&#xa;- size: Double&#xa;--------------------------------&#xa;Methods:&#xa;- parseFile()&#xa;- extractTerms()" style="shape=rectangle;rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="50" width="240" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="4" value="Transcriptions&#xa;--------------------------------&#xa;Attributes:&#xa;- transcriptId: String&#xa;- text: String&#xa;- timestamp: DateTime&#xa;- speaker: String&#xa;--------------------------------&#xa;Methods:&#xa;- captureRealTime()&#xa;- storeTranscript()" style="shape=rectangle;rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="300" width="240" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="5" value="Summarization Pipeline&#xa;--------------------------------&#xa;Attributes:&#xa;- pipelineId: String&#xa;- summaryText: String&#xa;- efficiencyScore: Double&#xa;--------------------------------&#xa;Methods:&#xa;- combineData()&#xa;- generateSummary()" style="shape=rectangle;rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="300" width="240" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="6" value="Notes&#xa;--------------------------------&#xa;Attributes:&#xa;- noteId: String&#xa;- format: String&#xa;- content: String&#xa;- creationDate: DateTime&#xa;--------------------------------&#xa;Methods:&#xa;- exportToPDF()&#xa;- deliverViaChat()" style="shape=rectangle;rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="650" y="200" width="240" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="2" target="3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="3" target="5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="4" target="5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="5" target="6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
